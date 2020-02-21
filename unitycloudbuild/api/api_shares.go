@@ -11,12 +11,12 @@ package ucbapi
 
 import (
 	_context "context"
+	"fmt"
+	"github.com/antihax/optional"
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
-	"fmt"
 	"strings"
-	"github.com/antihax/optional"
 )
 
 // Linger please

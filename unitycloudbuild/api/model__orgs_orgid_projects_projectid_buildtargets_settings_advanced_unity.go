@@ -8,11 +8,33 @@
  */
 
 package ucbapi
-// InlineObject7 struct for InlineObject7
-type InlineObject7 struct {
-	Name string `json:"name,omitempty"`
-	Platform string `json:"platform,omitempty"`
-	Enabled bool `json:"enabled,omitempty"`
-	Settings OrgsOrgidProjectsProjectidBuildtargetsSettings `json:"settings,omitempty"`
-	Credentials OrgsOrgidProjectsProjectidBuildtargetsCredentials1 `json:"credentials,omitempty"`
+// OrgsOrgidProjectsProjectidBuildtargetsSettingsAdvancedUnity struct for OrgsOrgidProjectsProjectidBuildtargetsSettingsAdvancedUnity
+type OrgsOrgidProjectsProjectidBuildtargetsSettingsAdvancedUnity struct {
+	// The fully-qualified name of a public static method you want us to call before we start the Unity build process. For example: ClassName.NeatMethod or NameSpace.ClassName.NeatMethod. No trailing parenthesis, and it can't have the same name as your Post-Export method!
+	PreExportMethod string `json:"preExportMethod,omitempty"`
+	// The fully-qualified name of a public static method you want us to call after we finish the Unity build process (but before Xcode). For example: ClassName.CoolMethod or NameSpace.ClassName.CoolMethod. No trailing parenthesis, and it can't have the same name as your Post-Export method! This method must accept a string parameter, which will receive the path to the exported Unity player (or Xcode project in the case of iOS).
+	PostExportMethod string `json:"postExportMethod,omitempty"`
+	// Relative path to the script that should be run before the build process starts.
+	PreBuildScript string `json:"preBuildScript,omitempty"`
+	// Relative path to the script that should be run after the build process finishes.
+	PostBuildScript string `json:"postBuildScript,omitempty"`
+	// Enter the names of the symbols you want to define for iOS. These symbols can then be used as the conditions for #if directives just like the built-in ones. (i.e. #IF MYDEFINE or #IF AMAZON)
+	ScriptingDefineSymbols  string                                                                             `json:"scriptingDefineSymbols,omitempty"`
+	PlayerExporter          OrgsOrgidProjectsProjectidBuildtargetsSettingsAdvancedUnityPlayerExporter          `json:"playerExporter,omitempty"`
+	PlayerSettings          OrgsOrgidProjectsProjectidBuildtargetsSettingsAdvancedUnityPlayerSettings          `json:"playerSettings,omitempty"`
+	EditorUserBuildSettings OrgsOrgidProjectsProjectidBuildtargetsSettingsAdvancedUnityEditorUserBuildSettings `json:"editorUserBuildSettings,omitempty"`
+	AssetBundles            OrgsOrgidProjectsProjectidBuildtargetsSettingsAdvancedUnityAssetBundles            `json:"assetBundles,omitempty"`
+	Addressables            OrgsOrgidProjectsProjectidBuildtargetsSettingsAdvancedUnityAddressables            `json:"addressables,omitempty"`
+	// Run any unit tests your project has when a build happens.
+	RunUnitTests bool `json:"runUnitTests,omitempty"`
+	// Should Edit Mode unit tests be run? NOTE: requires runUnitTests to be true and building with Unity 5.6 or newer.
+	RunEditModeTests bool `json:"runEditModeTests,omitempty"`
+	// Should Play Mode unit tests be run? NOTE: requires runUnitTests to be true and building with Unity 5.6 or newer.
+	RunPlayModeTests bool `json:"runPlayModeTests,omitempty"`
+	// Mark builds as failed if the unit tests do not pass.
+	FailedUnitTestFailsBuild bool `json:"failedUnitTestFailsBuild,omitempty"`
+	// LEGACY - The Unity method to call when running unit tests (only supported in Unity 5.2 and lower).
+	UnitTestMethod string `json:"unitTestMethod,omitempty"`
+	// Enable lightmap baking (disabled by default since it is very slow and usually unnecessary)
+	EnableLightBake bool `json:"enableLightBake,omitempty"`
 }

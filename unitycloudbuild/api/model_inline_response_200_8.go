@@ -8,8 +8,14 @@
  */
 
 package ucbapi
-// OrgsOrgidProjectsProjectidBuildtargetsCredentialsSigning struct for OrgsOrgidProjectsProjectidBuildtargetsCredentialsSigning
-type OrgsOrgidProjectsProjectidBuildtargetsCredentialsSigning struct {
-	Credentialid string `json:"credentialid,omitempty"`
-	CredentialResourceRef OrgsOrgidProjectsProjectidBuildtargetsCredentialsSigningCredentialResourceRef `json:"credentialResourceRef,omitempty"`
+// InlineResponse2008 struct for InlineResponse2008
+type InlineResponse2008 struct {
+	Platform            string                                                                                   `json:"platform,omitempty"`
+	Label               string                                                                                   `json:"label,omitempty"`
+	Credentialid        string                                                                                   `json:"credentialid,omitempty"`
+	Created             string                                                                                   `json:"created,omitempty"`
+	LastMod             string                                                                                   `json:"lastMod,omitempty"`
+	Certificate         OrgsOrgidProjectsProjectidBuildtargetsCredentialsSigningCredentialResourceRefCertificate `json:"certificate,omitempty"`
+	ProvisioningProfile OrgsOrgidCredentialsSigningIosProvisioningProfile                                        `json:"provisioningProfile,omitempty"`
+	Links               map[string]interface{}                                                                   `json:"links,omitempty"`
 }

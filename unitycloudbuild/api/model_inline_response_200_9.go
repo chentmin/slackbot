@@ -10,8 +10,8 @@
 package ucbapi
 // InlineResponse2009 struct for InlineResponse2009
 type InlineResponse2009 struct {
-	Depth int32 `json:"depth,omitempty"`
-	Duration float32 `json:"duration"`
-	Name string `json:"name"`
+	Depth int32                                                                             `json:"depth,omitempty"`
+	Duration float32                                                                        `json:"duration"`
+	Name string                                                                             `json:"name"`
 	Messages []OrgsOrgidProjectsProjectidBuildtargetsBuildtargetidBuildsNumberStepsMessages `json:"messages,omitempty"`
 }

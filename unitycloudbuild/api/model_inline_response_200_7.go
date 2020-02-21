@@ -8,17 +8,13 @@
  */
 
 package ucbapi
-// InlineResponse2006 struct for InlineResponse2006
-type InlineResponse2006 struct {
-	Name string `json:"name,omitempty"`
-	Platform string `json:"platform,omitempty"`
-	// unique id auto-generated from the build target name
-	Buildtargetid string `json:"buildtargetid,omitempty"`
-	// whether this target can be built by the API
-	Enabled bool `json:"enabled,omitempty"`
-	Settings OrgsOrgidProjectsProjectidBuildtargetsSettings `json:"settings,omitempty"`
-	LastBuilt OrgsOrgidProjectsProjectidBuildtargetsLastBuilt `json:"lastBuilt,omitempty"`
-	Credentials OrgsOrgidProjectsProjectidBuildtargetsCredentials `json:"credentials,omitempty"`
-	Builds []OrgsOrgidProjectsProjectidBuildtargetsBuilds `json:"builds,omitempty"`
-	Links map[string]interface{} `json:"links,omitempty"`
+// InlineResponse2007 struct for InlineResponse2007
+type InlineResponse2007 struct {
+	Platform     string                                     `json:"platform,omitempty"`
+	Label        string                                     `json:"label,omitempty"`
+	Credentialid string                                     `json:"credentialid,omitempty"`
+	Created      string                                     `json:"created,omitempty"`
+	LastMod      string                                     `json:"lastMod,omitempty"`
+	Keystore     OrgsOrgidCredentialsSigningAndroidKeystore `json:"keystore,omitempty"`
+	Links        map[string]interface{}                     `json:"links,omitempty"`
 }

@@ -8,9 +8,36 @@
  */
 
 package ucbapi
-// OrgsOrgidProjectsProjectidBuildtargetsSettingsAdvanced struct for OrgsOrgidProjectsProjectidBuildtargetsSettingsAdvanced
-type OrgsOrgidProjectsProjectidBuildtargetsSettingsAdvanced struct {
-	Xcode OrgsOrgidProjectsProjectidBuildtargetsSettingsAdvancedXcode `json:"xcode,omitempty"`
-	Android OOPBSAAndroid `json:"android,omitempty"`
-	Unity OrgsOrgidProjectsProjectidBuildtargetsSettingsAdvancedUnity `json:"unity,omitempty"`
+// OrgsOrgidProjectsProjectidBuildtargetsLinks struct for OrgsOrgidProjectsProjectidBuildtargetsLinks
+type OrgsOrgidProjectsProjectidBuildtargetsLinks struct {
+	// TODO
+	// Trimmed out non-artifact stuff because schema was wrong
+	Artifacts []Artifact `json:"artifacts,omitempty"`
+	//Href string `json:"href,omitempty"`
+	//Method string `json:"method,omitempty"`
+	//Meta map[string]interface{} `json:"meta,omitempty"`
+
+	DownloadUrl SingleLink `json:"download_primary"`
+	SelfUrl     SingleLink `json:"self"`
+
+	LogUrl     SingleLink `json:"log"`
+}
+
+type SingleLink struct {
+	Method string `json:"method"`
+	Href   string `json:"href"`
+}
+
+type Artifact struct {
+	Primary bool `json:"primary,omitempty"`
+	ShowDownload bool `json:"show_download,omitempty"`
+	Files []File `json:"files,omitempty"`
+}
+
+type File struct {
+	Href string `json:"href,omitempty"`
+	Resumable bool `json:"resumable,omitempty"`
+	Size int `json:"size,omitempty"`
+	Md5Sum string `json:"md5sum,omitempty"`
+	FileName string `json:"filename,omitempty"`
 }

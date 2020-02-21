@@ -12,6 +12,7 @@
 # Happy Coding!
 
 service: unitycloudbuild
+
 # app and org for use with dashboard.serverless.com
 #app: your-app-name
 #org: your-org-name
@@ -49,6 +50,13 @@ provider:
 
 # you can define service wide environment variables here
 
+  environment:
+    SLACK_TOKEN: xoxb-944367333522-948002704626-8hjXKUxugu94OHzZiWhMIkwD
+    SLACK_VERIFICATION_TOKEN: 5YZBsa0b5ljwXFZX38H88wQF
+    UNITY_TOKEN: 4e8af3e53c5edb98853baf3fc8702bbd
+    UNITY_ORG: animal2018
+    UNITY_PROJECT: waterhunt
+    SELF_URL: https://unitycloudbuild.animal.lightpaw.com
 
 package:
   exclude:
@@ -59,16 +67,12 @@ package:
 functions:
   unity:
     environment:
-      SLACK_TOKEN: xoxb-944367333522-948002704626-8hjXKUxugu94OHzZiWhMIkwD
-      SLACK_VERIFICATION_TOKEN: 5YZBsa0b5ljwXFZX38H88wQF
-      UNITY_TOKEN: 4e8af3e53c5edb98853baf3fc8702bbd
-      UNITY_ORG: animal2018
-      UNITY_PROJECT: waterhunt
-    handler: bin/unity
+    handler: bin/full
     events:
       - http:
-          path: cloudbuild
-          method: post
+          path: /{proxy+}
+          method: ANY
+
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details

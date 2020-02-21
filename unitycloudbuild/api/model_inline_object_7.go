@@ -8,16 +8,11 @@
  */
 
 package ucbapi
-// OrgsOrgidProjectsProjectidBuildtargetsSettings struct for OrgsOrgidProjectsProjectidBuildtargetsSettings
-type OrgsOrgidProjectsProjectidBuildtargetsSettings struct {
-	// start builds automatically when your repo is updated
-	AutoBuild bool `json:"autoBuild,omitempty"`
-	// 'latest' or a unity dot version with underscores (ex. '4_6_5')
-	UnityVersion string `json:"unityVersion,omitempty"`
-	// attempt to automatically detect which unity version to use, fallback to specified unityVersion if unable to.
-	AutoDetectUnityVersion bool `json:"autoDetectUnityVersion,omitempty"`
-	Executablename string `json:"executablename,omitempty"`
-	Scm OrgsOrgidProjectsProjectidBuildtargetsSettingsScm `json:"scm,omitempty"`
-	Platform OrgsOrgidProjectsProjectidBuildtargetsSettingsPlatform `json:"platform,omitempty"`
-	Advanced OrgsOrgidProjectsProjectidBuildtargetsSettingsAdvanced `json:"advanced,omitempty"`
+// InlineObject7 struct for InlineObject7
+type InlineObject7 struct {
+	Name        string                                             `json:"name,omitempty"`
+	Platform    string                                             `json:"platform,omitempty"`
+	Enabled     bool                                               `json:"enabled,omitempty"`
+	Settings    OrgsOrgidProjectsProjectidBuildtargetsSettings     `json:"settings,omitempty"`
+	Credentials OrgsOrgidProjectsProjectidBuildtargetsCredentials1 `json:"credentials,omitempty"`
 }

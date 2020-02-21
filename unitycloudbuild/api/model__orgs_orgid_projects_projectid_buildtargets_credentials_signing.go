@@ -8,26 +8,8 @@
  */
 
 package ucbapi
-// OrgsOrgidProjectsProjectidBuildtargetsLinks struct for OrgsOrgidProjectsProjectidBuildtargetsLinks
-type OrgsOrgidProjectsProjectidBuildtargetsLinks struct {
-	// TODO
-	// Trimmed out non-artifact stuff because schema was wrong
-	Artifacts []Artifact `json:"artifacts,omitempty"`
-	//Href string `json:"href,omitempty"`
-	//Method string `json:"method,omitempty"`
-	//Meta map[string]interface{} `json:"meta,omitempty"`
-}
-
-type Artifact struct {
-	Primary bool `json:"primary,omitempty"`
-	ShowDownload bool `json:"show_download,omitempty"`
-	Files []File `json:"files,omitempty"`
-}
-
-type File struct {
-	Href string `json:"href,omitempty"`
-	Resumable bool `json:"resumable,omitempty"`
-	Size int `json:"size,omitempty"`
-	Md5Sum string `json:"md5sum,omitempty"`
-	FileName string `json:"filename,omitempty"`
+// OrgsOrgidProjectsProjectidBuildtargetsCredentialsSigning struct for OrgsOrgidProjectsProjectidBuildtargetsCredentialsSigning
+type OrgsOrgidProjectsProjectidBuildtargetsCredentialsSigning struct {
+	Credentialid          string                                                                        `json:"credentialid,omitempty"`
+	CredentialResourceRef OrgsOrgidProjectsProjectidBuildtargetsCredentialsSigningCredentialResourceRef `json:"credentialResourceRef,omitempty"`
 }

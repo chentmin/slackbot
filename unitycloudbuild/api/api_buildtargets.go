@@ -11,12 +11,12 @@ package ucbapi
 
 import (
 	_context "context"
+	"fmt"
+	"github.com/antihax/optional"
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
-	"fmt"
 	"strings"
-	"github.com/antihax/optional"
 )
 
 // Linger please
@@ -24,37 +24,51 @@ var (
 	_ _context.Context
 )
 
-// ProjectsApiService ProjectsApi service
-type ProjectsApiService service
+// BuildtargetsApiService BuildtargetsApi service
+type BuildtargetsApiService service
+
+// GetBuildTargetsForOrgOpts Optional parameters for the method 'GetBuildTargetsForOrg'
+type GetBuildTargetsForOrgOpts struct {
+    Include optional.String
+    IncludeLastSuccess optional.Bool
+}
 
 /*
-AddProject Create project
-Create a project for the specified organization
+GetBuildTargetsForOrg List all build targets for an org
+Gets all configured build targets for an org, regardless of whether they are enabled. Add \&quot;?include&#x3D;settings,credentials\&quot; as a query parameter to include the build target settings and credentials with the response. 
  * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgid Organization identifier
- * @param options Options for project create/update
-@return map[string]interface{}
+ * @param optional nil or *GetBuildTargetsForOrgOpts - Optional Parameters:
+ * @param "Include" (optional.String) -  Extra fields to include in the response
+ * @param "IncludeLastSuccess" (optional.Bool) -  Include last successful build
+@return []InlineResponse2006
 */
-func (a *ProjectsApiService) AddProject(ctx _context.Context, orgid string, options OrgsOrgidProjectsOptions) (map[string]interface{}, *_nethttp.Response, error) {
+func (a *BuildtargetsApiService) GetBuildTargetsForOrg(ctx _context.Context, orgid string, localVarOptionals *GetBuildTargetsForOrgOpts) ([]InlineResponse2006, *_nethttp.Response, error) {
 	var (
-		localVarHTTPMethod   = _nethttp.MethodPost
+		localVarHTTPMethod   = _nethttp.MethodGet
 		localVarPostBody     interface{}
 		localVarFormFileName string
 		localVarFileName     string
 		localVarFileBytes    []byte
-		localVarReturnValue  map[string]interface{}
+		localVarReturnValue  []InlineResponse2006
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/orgs/{orgid}/projects"
+	localVarPath := a.client.cfg.BasePath + "/orgs/{orgid}/buildtargets"
 	localVarPath = strings.Replace(localVarPath, "{"+"orgid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", orgid)), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
 
+	if localVarOptionals != nil && localVarOptionals.Include.IsSet() {
+		localVarQueryParams.Add("include", parameterToString(localVarOptionals.Include.Value(), ""))
+	}
+	if localVarOptionals != nil && localVarOptionals.IncludeLastSuccess.IsSet() {
+		localVarQueryParams.Add("include_last_success", parameterToString(localVarOptionals.IncludeLastSuccess.Value(), ""))
+	}
 	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{"application/json"}
+	localVarHTTPContentTypes := []string{}
 
 	// set Content-Type header
 	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
@@ -70,8 +84,6 @@ func (a *ProjectsApiService) AddProject(ctx _context.Context, orgid string, opti
 	if localVarHTTPHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
-	// body params
-	localVarPostBody = &options
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -93,7 +105,119 @@ func (a *ProjectsApiService) AddProject(ctx _context.Context, orgid string, opti
 			body:  localVarBody,
 			error: localVarHTTPResponse.Status,
 		}
-		if localVarHTTPResponse.StatusCode == 201 {
+		if localVarHTTPResponse.StatusCode == 200 {
+			var v []InlineResponse2006
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+// GetProjectsBuildTargetsStatsOpts Optional parameters for the method 'GetProjectsBuildTargetsStats'
+type GetProjectsBuildTargetsStatsOpts struct {
+    BuildStatus optional.String
+    CleanBuild optional.Bool
+    Limit optional.Float32
+}
+
+/*
+GetProjectsBuildTargetsStats Get build target statistics
+Get statistics for the specified build target
+ * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ * @param orgid Organization identifier
+ * @param projectid Project identifier
+ * @param buildtargetid unique id auto-generated from the build target name
+ * @param optional nil or *GetProjectsBuildTargetsStatsOpts - Optional Parameters:
+ * @param "BuildStatus" (optional.String) -  Query for only builds of a specific status
+ * @param "CleanBuild" (optional.Bool) -  Query for builds that have either been built clean or using caches
+ * @param "Limit" (optional.Float32) -  Get stats for last limit builds
+@return map[string]interface{}
+*/
+func (a *BuildtargetsApiService) GetProjectsBuildTargetsStats(ctx _context.Context, orgid string, projectid string, buildtargetid string, localVarOptionals *GetProjectsBuildTargetsStatsOpts) (map[string]interface{}, *_nethttp.Response, error) {
+	var (
+		localVarHTTPMethod   = _nethttp.MethodGet
+		localVarPostBody     interface{}
+		localVarFormFileName string
+		localVarFileName     string
+		localVarFileBytes    []byte
+		localVarReturnValue  map[string]interface{}
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/orgs/{orgid}/projects/{projectid}/buildtargets/{buildtargetid}/stats"
+	localVarPath = strings.Replace(localVarPath, "{"+"orgid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", orgid)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"projectid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", projectid)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"buildtargetid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", buildtargetid)), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := _neturl.Values{}
+	localVarFormParams := _neturl.Values{}
+
+	if localVarOptionals != nil && localVarOptionals.BuildStatus.IsSet() {
+		localVarQueryParams.Add("buildStatus", parameterToString(localVarOptionals.BuildStatus.Value(), ""))
+	}
+	if localVarOptionals != nil && localVarOptionals.CleanBuild.IsSet() {
+		localVarQueryParams.Add("cleanBuild", parameterToString(localVarOptionals.CleanBuild.Value(), ""))
+	}
+	if localVarOptionals != nil && localVarOptionals.Limit.IsSet() {
+		localVarQueryParams.Add("limit", parameterToString(localVarOptionals.Limit.Value(), ""))
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json", "text/plain", "text/html", "text/csv"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := _ioutil.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 200 {
 			var v map[string]interface{}
 			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
 			if err != nil {
@@ -119,14 +243,14 @@ func (a *ProjectsApiService) AddProject(ctx _context.Context, orgid string, opti
 }
 
 /*
-ArchiveProject Archive project
-This will archive the project in Cloud Build ONLY. Use with caution - this process is not reversible. The projects UPID will be removed from Cloud Build allowing the project to be reconfigured.
+OrgsOrgidProjectsProjectidBuildtargetsBuildtargetidDelete Delete build target
  * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgid Organization identifier
  * @param projectid Project identifier
+ * @param buildtargetid unique id auto-generated from the build target name
 @return string
 */
-func (a *ProjectsApiService) ArchiveProject(ctx _context.Context, orgid string, projectid string) (string, *_nethttp.Response, error) {
+func (a *BuildtargetsApiService) OrgsOrgidProjectsProjectidBuildtargetsBuildtargetidDelete(ctx _context.Context, orgid string, projectid string, buildtargetid string) (string, *_nethttp.Response, error) {
 	var (
 		localVarHTTPMethod   = _nethttp.MethodDelete
 		localVarPostBody     interface{}
@@ -137,9 +261,10 @@ func (a *ProjectsApiService) ArchiveProject(ctx _context.Context, orgid string, 
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/orgs/{orgid}/projects/{projectid}"
+	localVarPath := a.client.cfg.BasePath + "/orgs/{orgid}/projects/{projectid}/buildtargets/{buildtargetid}"
 	localVarPath = strings.Replace(localVarPath, "{"+"orgid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", orgid)), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"projectid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", projectid)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"buildtargetid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", buildtargetid)), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -193,16 +318,6 @@ func (a *ProjectsApiService) ArchiveProject(ctx _context.Context, orgid string, 
 			newErr.model = v
 			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
-		if localVarHTTPResponse.StatusCode == 404 {
-			var v map[string]interface{}
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
 
@@ -218,771 +333,16 @@ func (a *ProjectsApiService) ArchiveProject(ctx _context.Context, orgid string, 
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
-// GetAuditLogOpts Optional parameters for the method 'GetAuditLog'
-type GetAuditLogOpts struct {
-    PerPage optional.Float32
-    Page optional.Float32
-}
-
 /*
-GetAuditLog Get audit log
-Retrieve a list of historical settings changes for this project
+OrgsOrgidProjectsProjectidBuildtargetsBuildtargetidEnvvarsGet Get environment variables
+Get all configured environment variables for a given build target
  * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgid Organization identifier
  * @param projectid Project identifier
- * @param optional nil or *GetAuditLogOpts - Optional Parameters:
- * @param "PerPage" (optional.Float32) -  Number of audit log records to retrieve
- * @param "Page" (optional.Float32) -  Skip to page number, based on per_page value
-@return []InlineResponse2005
-*/
-func (a *ProjectsApiService) GetAuditLog(ctx _context.Context, orgid string, projectid string, localVarOptionals *GetAuditLogOpts) ([]InlineResponse2005, *_nethttp.Response, error) {
-	var (
-		localVarHTTPMethod   = _nethttp.MethodGet
-		localVarPostBody     interface{}
-		localVarFormFileName string
-		localVarFileName     string
-		localVarFileBytes    []byte
-		localVarReturnValue  []InlineResponse2005
-	)
-
-	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/orgs/{orgid}/projects/{projectid}/auditlog"
-	localVarPath = strings.Replace(localVarPath, "{"+"orgid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", orgid)), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"projectid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", projectid)), -1)
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := _neturl.Values{}
-	localVarFormParams := _neturl.Values{}
-
-	if localVarOptionals != nil && localVarOptionals.PerPage.IsSet() {
-		localVarQueryParams.Add("per_page", parameterToString(localVarOptionals.PerPage.Value(), ""))
-	}
-	if localVarOptionals != nil && localVarOptionals.Page.IsSet() {
-		localVarQueryParams.Add("page", parameterToString(localVarOptionals.Page.Value(), ""))
-	}
-	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{}
-
-	// set Content-Type header
-	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
-	if localVarHTTPContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
-	}
-
-	// to determine the Accept header
-	localVarHTTPHeaderAccepts := []string{"application/json", "text/plain", "text/html", "text/csv"}
-
-	// set Accept header
-	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
-	if localVarHTTPHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
-	}
-	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
-	if err != nil {
-		return localVarReturnValue, nil, err
-	}
-
-	localVarHTTPResponse, err := a.client.callAPI(r)
-	if err != nil || localVarHTTPResponse == nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	localVarBody, err := _ioutil.ReadAll(localVarHTTPResponse.Body)
-	localVarHTTPResponse.Body.Close()
-	if err != nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	if localVarHTTPResponse.StatusCode >= 300 {
-		newErr := GenericOpenAPIError{
-			body:  localVarBody,
-			error: localVarHTTPResponse.Status,
-		}
-		if localVarHTTPResponse.StatusCode == 200 {
-			var v []InlineResponse2005
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-	if err != nil {
-		newErr := GenericOpenAPIError{
-			body:  localVarBody,
-			error: err.Error(),
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	return localVarReturnValue, localVarHTTPResponse, nil
-}
-
-// GetProjectOpts Optional parameters for the method 'GetProject'
-type GetProjectOpts struct {
-    Include optional.String
-}
-
-/*
-GetProject Get project details
- * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param orgid Organization identifier
- * @param projectid Project identifier
- * @param optional nil or *GetProjectOpts - Optional Parameters:
- * @param "Include" (optional.String) -  Extra fields to include in the response
-@return map[string]interface{}
-*/
-func (a *ProjectsApiService) GetProject(ctx _context.Context, orgid string, projectid string, localVarOptionals *GetProjectOpts) (map[string]interface{}, *_nethttp.Response, error) {
-	var (
-		localVarHTTPMethod   = _nethttp.MethodGet
-		localVarPostBody     interface{}
-		localVarFormFileName string
-		localVarFileName     string
-		localVarFileBytes    []byte
-		localVarReturnValue  map[string]interface{}
-	)
-
-	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/orgs/{orgid}/projects/{projectid}"
-	localVarPath = strings.Replace(localVarPath, "{"+"orgid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", orgid)), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"projectid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", projectid)), -1)
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := _neturl.Values{}
-	localVarFormParams := _neturl.Values{}
-
-	if localVarOptionals != nil && localVarOptionals.Include.IsSet() {
-		localVarQueryParams.Add("include", parameterToString(localVarOptionals.Include.Value(), ""))
-	}
-	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{}
-
-	// set Content-Type header
-	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
-	if localVarHTTPContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
-	}
-
-	// to determine the Accept header
-	localVarHTTPHeaderAccepts := []string{"application/json", "text/plain", "text/html", "text/csv"}
-
-	// set Accept header
-	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
-	if localVarHTTPHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
-	}
-	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
-	if err != nil {
-		return localVarReturnValue, nil, err
-	}
-
-	localVarHTTPResponse, err := a.client.callAPI(r)
-	if err != nil || localVarHTTPResponse == nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	localVarBody, err := _ioutil.ReadAll(localVarHTTPResponse.Body)
-	localVarHTTPResponse.Body.Close()
-	if err != nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	if localVarHTTPResponse.StatusCode >= 300 {
-		newErr := GenericOpenAPIError{
-			body:  localVarBody,
-			error: localVarHTTPResponse.Status,
-		}
-		if localVarHTTPResponse.StatusCode == 200 {
-			var v map[string]interface{}
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-	if err != nil {
-		newErr := GenericOpenAPIError{
-			body:  localVarBody,
-			error: err.Error(),
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	return localVarReturnValue, localVarHTTPResponse, nil
-}
-
-/*
-GetProjectByUpid Get project details
-Gets the same data as /orgs/{orgid}/project/{projectid} but looks up the project by the Unity Project ID. This value is returned in the project&#39;s guid field.
- * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param projectupid Project UPID - Unity global id
-@return map[string]interface{}
-*/
-func (a *ProjectsApiService) GetProjectByUpid(ctx _context.Context, projectupid string) (map[string]interface{}, *_nethttp.Response, error) {
-	var (
-		localVarHTTPMethod   = _nethttp.MethodGet
-		localVarPostBody     interface{}
-		localVarFormFileName string
-		localVarFileName     string
-		localVarFileBytes    []byte
-		localVarReturnValue  map[string]interface{}
-	)
-
-	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/projects/{projectupid}"
-	localVarPath = strings.Replace(localVarPath, "{"+"projectupid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", projectupid)), -1)
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := _neturl.Values{}
-	localVarFormParams := _neturl.Values{}
-
-	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{}
-
-	// set Content-Type header
-	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
-	if localVarHTTPContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
-	}
-
-	// to determine the Accept header
-	localVarHTTPHeaderAccepts := []string{"application/json", "text/plain", "text/html", "text/csv"}
-
-	// set Accept header
-	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
-	if localVarHTTPHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
-	}
-	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
-	if err != nil {
-		return localVarReturnValue, nil, err
-	}
-
-	localVarHTTPResponse, err := a.client.callAPI(r)
-	if err != nil || localVarHTTPResponse == nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	localVarBody, err := _ioutil.ReadAll(localVarHTTPResponse.Body)
-	localVarHTTPResponse.Body.Close()
-	if err != nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	if localVarHTTPResponse.StatusCode >= 300 {
-		newErr := GenericOpenAPIError{
-			body:  localVarBody,
-			error: localVarHTTPResponse.Status,
-		}
-		if localVarHTTPResponse.StatusCode == 200 {
-			var v map[string]interface{}
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-	if err != nil {
-		newErr := GenericOpenAPIError{
-			body:  localVarBody,
-			error: err.Error(),
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	return localVarReturnValue, localVarHTTPResponse, nil
-}
-
-/*
-GetProjectsBillingPlans Get billing plan
-Get the billing plan for the specified project
- * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param orgid Organization identifier
- * @param projectid Project identifier
-@return map[string]interface{}
-*/
-func (a *ProjectsApiService) GetProjectsBillingPlans(ctx _context.Context, orgid string, projectid string) (map[string]interface{}, *_nethttp.Response, error) {
-	var (
-		localVarHTTPMethod   = _nethttp.MethodGet
-		localVarPostBody     interface{}
-		localVarFormFileName string
-		localVarFileName     string
-		localVarFileBytes    []byte
-		localVarReturnValue  map[string]interface{}
-	)
-
-	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/orgs/{orgid}/projects/{projectid}/billingplan"
-	localVarPath = strings.Replace(localVarPath, "{"+"orgid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", orgid)), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"projectid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", projectid)), -1)
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := _neturl.Values{}
-	localVarFormParams := _neturl.Values{}
-
-	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{}
-
-	// set Content-Type header
-	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
-	if localVarHTTPContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
-	}
-
-	// to determine the Accept header
-	localVarHTTPHeaderAccepts := []string{"application/json", "text/plain", "text/html", "text/csv"}
-
-	// set Accept header
-	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
-	if localVarHTTPHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
-	}
-	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
-	if err != nil {
-		return localVarReturnValue, nil, err
-	}
-
-	localVarHTTPResponse, err := a.client.callAPI(r)
-	if err != nil || localVarHTTPResponse == nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	localVarBody, err := _ioutil.ReadAll(localVarHTTPResponse.Body)
-	localVarHTTPResponse.Body.Close()
-	if err != nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	if localVarHTTPResponse.StatusCode >= 300 {
-		newErr := GenericOpenAPIError{
-			body:  localVarBody,
-			error: localVarHTTPResponse.Status,
-		}
-		if localVarHTTPResponse.StatusCode == 200 {
-			var v map[string]interface{}
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-	if err != nil {
-		newErr := GenericOpenAPIError{
-			body:  localVarBody,
-			error: err.Error(),
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	return localVarReturnValue, localVarHTTPResponse, nil
-}
-
-/*
-GetProjectsSSHKey Get SSH Key
-Get the ssh public key for the specified project
- * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param orgid Organization identifier
- * @param projectid Project identifier
-@return map[string]interface{}
-*/
-func (a *ProjectsApiService) GetProjectsSSHKey(ctx _context.Context, orgid string, projectid string) (map[string]interface{}, *_nethttp.Response, error) {
-	var (
-		localVarHTTPMethod   = _nethttp.MethodGet
-		localVarPostBody     interface{}
-		localVarFormFileName string
-		localVarFileName     string
-		localVarFileBytes    []byte
-		localVarReturnValue  map[string]interface{}
-	)
-
-	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/orgs/{orgid}/projects/{projectid}/sshkey"
-	localVarPath = strings.Replace(localVarPath, "{"+"orgid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", orgid)), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"projectid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", projectid)), -1)
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := _neturl.Values{}
-	localVarFormParams := _neturl.Values{}
-
-	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{}
-
-	// set Content-Type header
-	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
-	if localVarHTTPContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
-	}
-
-	// to determine the Accept header
-	localVarHTTPHeaderAccepts := []string{"application/json", "text/plain", "text/html", "text/csv"}
-
-	// set Accept header
-	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
-	if localVarHTTPHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
-	}
-	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
-	if err != nil {
-		return localVarReturnValue, nil, err
-	}
-
-	localVarHTTPResponse, err := a.client.callAPI(r)
-	if err != nil || localVarHTTPResponse == nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	localVarBody, err := _ioutil.ReadAll(localVarHTTPResponse.Body)
-	localVarHTTPResponse.Body.Close()
-	if err != nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	if localVarHTTPResponse.StatusCode >= 300 {
-		newErr := GenericOpenAPIError{
-			body:  localVarBody,
-			error: localVarHTTPResponse.Status,
-		}
-		if localVarHTTPResponse.StatusCode == 200 {
-			var v map[string]interface{}
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-	if err != nil {
-		newErr := GenericOpenAPIError{
-			body:  localVarBody,
-			error: err.Error(),
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	return localVarReturnValue, localVarHTTPResponse, nil
-}
-
-/*
-GetStats Get project statistics
-Get statistics for the specified project
- * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param orgid Organization identifier
- * @param projectid Project identifier
-@return map[string]interface{}
-*/
-func (a *ProjectsApiService) GetStats(ctx _context.Context, orgid string, projectid string) (map[string]interface{}, *_nethttp.Response, error) {
-	var (
-		localVarHTTPMethod   = _nethttp.MethodGet
-		localVarPostBody     interface{}
-		localVarFormFileName string
-		localVarFileName     string
-		localVarFileBytes    []byte
-		localVarReturnValue  map[string]interface{}
-	)
-
-	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/orgs/{orgid}/projects/{projectid}/stats"
-	localVarPath = strings.Replace(localVarPath, "{"+"orgid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", orgid)), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"projectid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", projectid)), -1)
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := _neturl.Values{}
-	localVarFormParams := _neturl.Values{}
-
-	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{}
-
-	// set Content-Type header
-	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
-	if localVarHTTPContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
-	}
-
-	// to determine the Accept header
-	localVarHTTPHeaderAccepts := []string{"application/json", "text/plain", "text/html", "text/csv"}
-
-	// set Accept header
-	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
-	if localVarHTTPHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
-	}
-	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
-	if err != nil {
-		return localVarReturnValue, nil, err
-	}
-
-	localVarHTTPResponse, err := a.client.callAPI(r)
-	if err != nil || localVarHTTPResponse == nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	localVarBody, err := _ioutil.ReadAll(localVarHTTPResponse.Body)
-	localVarHTTPResponse.Body.Close()
-	if err != nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	if localVarHTTPResponse.StatusCode >= 300 {
-		newErr := GenericOpenAPIError{
-			body:  localVarBody,
-			error: localVarHTTPResponse.Status,
-		}
-		if localVarHTTPResponse.StatusCode == 200 {
-			var v map[string]interface{}
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-	if err != nil {
-		newErr := GenericOpenAPIError{
-			body:  localVarBody,
-			error: err.Error(),
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	return localVarReturnValue, localVarHTTPResponse, nil
-}
-
-// ListProjectsForOrgOpts Optional parameters for the method 'ListProjectsForOrg'
-type ListProjectsForOrgOpts struct {
-    Include optional.String
-}
-
-/*
-ListProjectsForOrg List all projects (org)
-List all projects that belong to the specified organization. Add \&quot;?include&#x3D;settings\&quot; as a query parameter to include the project settings with the response. 
- * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param orgid Organization identifier
- * @param optional nil or *ListProjectsForOrgOpts - Optional Parameters:
- * @param "Include" (optional.String) -  Extra fields to include in the response
-@return []map[string]interface{}
-*/
-func (a *ProjectsApiService) ListProjectsForOrg(ctx _context.Context, orgid string, localVarOptionals *ListProjectsForOrgOpts) ([]map[string]interface{}, *_nethttp.Response, error) {
-	var (
-		localVarHTTPMethod   = _nethttp.MethodGet
-		localVarPostBody     interface{}
-		localVarFormFileName string
-		localVarFileName     string
-		localVarFileBytes    []byte
-		localVarReturnValue  []map[string]interface{}
-	)
-
-	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/orgs/{orgid}/projects"
-	localVarPath = strings.Replace(localVarPath, "{"+"orgid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", orgid)), -1)
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := _neturl.Values{}
-	localVarFormParams := _neturl.Values{}
-
-	if localVarOptionals != nil && localVarOptionals.Include.IsSet() {
-		localVarQueryParams.Add("include", parameterToString(localVarOptionals.Include.Value(), ""))
-	}
-	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{}
-
-	// set Content-Type header
-	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
-	if localVarHTTPContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
-	}
-
-	// to determine the Accept header
-	localVarHTTPHeaderAccepts := []string{"application/json", "text/plain", "text/html", "text/csv", "application/json-default", "application/json-include-settings"}
-
-	// set Accept header
-	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
-	if localVarHTTPHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
-	}
-	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
-	if err != nil {
-		return localVarReturnValue, nil, err
-	}
-
-	localVarHTTPResponse, err := a.client.callAPI(r)
-	if err != nil || localVarHTTPResponse == nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	localVarBody, err := _ioutil.ReadAll(localVarHTTPResponse.Body)
-	localVarHTTPResponse.Body.Close()
-	if err != nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	if localVarHTTPResponse.StatusCode >= 300 {
-		newErr := GenericOpenAPIError{
-			body:  localVarBody,
-			error: localVarHTTPResponse.Status,
-		}
-		if localVarHTTPResponse.StatusCode == 200 {
-			var v []map[string]interface{}
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-	if err != nil {
-		newErr := GenericOpenAPIError{
-			body:  localVarBody,
-			error: err.Error(),
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	return localVarReturnValue, localVarHTTPResponse, nil
-}
-
-// ListProjectsForUserOpts Optional parameters for the method 'ListProjectsForUser'
-type ListProjectsForUserOpts struct {
-    Include optional.String
-}
-
-/*
-ListProjectsForUser List all projects (user)
-List all projects that you have permission to access across all organizations. Add \&quot;?include&#x3D;settings\&quot; as a query parameter to include the project settings with the response. 
- * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param optional nil or *ListProjectsForUserOpts - Optional Parameters:
- * @param "Include" (optional.String) -  Extra fields to include in the response
-@return []map[string]interface{}
-*/
-func (a *ProjectsApiService) ListProjectsForUser(ctx _context.Context, localVarOptionals *ListProjectsForUserOpts) ([]map[string]interface{}, *_nethttp.Response, error) {
-	var (
-		localVarHTTPMethod   = _nethttp.MethodGet
-		localVarPostBody     interface{}
-		localVarFormFileName string
-		localVarFileName     string
-		localVarFileBytes    []byte
-		localVarReturnValue  []map[string]interface{}
-	)
-
-	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/projects"
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := _neturl.Values{}
-	localVarFormParams := _neturl.Values{}
-
-	if localVarOptionals != nil && localVarOptionals.Include.IsSet() {
-		localVarQueryParams.Add("include", parameterToString(localVarOptionals.Include.Value(), ""))
-	}
-	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{}
-
-	// set Content-Type header
-	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
-	if localVarHTTPContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
-	}
-
-	// to determine the Accept header
-	localVarHTTPHeaderAccepts := []string{"application/json", "text/plain", "text/html", "text/csv"}
-
-	// set Accept header
-	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
-	if localVarHTTPHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
-	}
-	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
-	if err != nil {
-		return localVarReturnValue, nil, err
-	}
-
-	localVarHTTPResponse, err := a.client.callAPI(r)
-	if err != nil || localVarHTTPResponse == nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	localVarBody, err := _ioutil.ReadAll(localVarHTTPResponse.Body)
-	localVarHTTPResponse.Body.Close()
-	if err != nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	if localVarHTTPResponse.StatusCode >= 300 {
-		newErr := GenericOpenAPIError{
-			body:  localVarBody,
-			error: localVarHTTPResponse.Status,
-		}
-		if localVarHTTPResponse.StatusCode == 200 {
-			var v []map[string]interface{}
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-			newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-	if err != nil {
-		newErr := GenericOpenAPIError{
-			body:  localVarBody,
-			error: err.Error(),
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	return localVarReturnValue, localVarHTTPResponse, nil
-}
-
-/*
-OrgsOrgidProjectsProjectidEnvvarsGet Get environment variables
-Get all configured environment variables for a given project
- * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param orgid Organization identifier
- * @param projectid Project identifier
+ * @param buildtargetid unique id auto-generated from the build target name
 @return map[string]string
 */
-func (a *ProjectsApiService) OrgsOrgidProjectsProjectidEnvvarsGet(ctx _context.Context, orgid string, projectid string) (map[string]string, *_nethttp.Response, error) {
+func (a *BuildtargetsApiService) OrgsOrgidProjectsProjectidBuildtargetsBuildtargetidEnvvarsGet(ctx _context.Context, orgid string, projectid string, buildtargetid string) (map[string]string, *_nethttp.Response, error) {
 	var (
 		localVarHTTPMethod   = _nethttp.MethodGet
 		localVarPostBody     interface{}
@@ -993,9 +353,10 @@ func (a *ProjectsApiService) OrgsOrgidProjectsProjectidEnvvarsGet(ctx _context.C
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/orgs/{orgid}/projects/{projectid}/envvars"
+	localVarPath := a.client.cfg.BasePath + "/orgs/{orgid}/projects/{projectid}/buildtargets/{buildtargetid}/envvars"
 	localVarPath = strings.Replace(localVarPath, "{"+"orgid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", orgid)), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"projectid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", projectid)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"buildtargetid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", buildtargetid)), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -1065,15 +426,16 @@ func (a *ProjectsApiService) OrgsOrgidProjectsProjectidEnvvarsGet(ctx _context.C
 }
 
 /*
-OrgsOrgidProjectsProjectidEnvvarsPut Set environment variables
-Set all configured environment variables for a given project
+OrgsOrgidProjectsProjectidBuildtargetsBuildtargetidEnvvarsPut Set environment variables
+Set all configured environment variables for a given build target
  * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgid Organization identifier
  * @param projectid Project identifier
+ * @param buildtargetid unique id auto-generated from the build target name
  * @param envvars Environment variables
 @return map[string]string
 */
-func (a *ProjectsApiService) OrgsOrgidProjectsProjectidEnvvarsPut(ctx _context.Context, orgid string, projectid string, envvars map[string]string) (map[string]string, *_nethttp.Response, error) {
+func (a *BuildtargetsApiService) OrgsOrgidProjectsProjectidBuildtargetsBuildtargetidEnvvarsPut(ctx _context.Context, orgid string, projectid string, buildtargetid string, envvars map[string]string) (map[string]string, *_nethttp.Response, error) {
 	var (
 		localVarHTTPMethod   = _nethttp.MethodPut
 		localVarPostBody     interface{}
@@ -1084,9 +446,10 @@ func (a *ProjectsApiService) OrgsOrgidProjectsProjectidEnvvarsPut(ctx _context.C
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/orgs/{orgid}/projects/{projectid}/envvars"
+	localVarPath := a.client.cfg.BasePath + "/orgs/{orgid}/projects/{projectid}/buildtargets/{buildtargetid}/envvars"
 	localVarPath = strings.Replace(localVarPath, "{"+"orgid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", orgid)), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"projectid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", projectid)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"buildtargetid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", buildtargetid)), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -1158,14 +521,106 @@ func (a *ProjectsApiService) OrgsOrgidProjectsProjectidEnvvarsPut(ctx _context.C
 }
 
 /*
-UpdateProject Update project details
+OrgsOrgidProjectsProjectidBuildtargetsBuildtargetidGet Get a build target
  * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgid Organization identifier
  * @param projectid Project identifier
- * @param options Options for project create/update
+ * @param buildtargetid unique id auto-generated from the build target name
 @return map[string]interface{}
 */
-func (a *ProjectsApiService) UpdateProject(ctx _context.Context, orgid string, projectid string, options OrgsOrgidProjectsOptions) (map[string]interface{}, *_nethttp.Response, error) {
+func (a *BuildtargetsApiService) OrgsOrgidProjectsProjectidBuildtargetsBuildtargetidGet(ctx _context.Context, orgid string, projectid string, buildtargetid string) (map[string]interface{}, *_nethttp.Response, error) {
+	var (
+		localVarHTTPMethod   = _nethttp.MethodGet
+		localVarPostBody     interface{}
+		localVarFormFileName string
+		localVarFileName     string
+		localVarFileBytes    []byte
+		localVarReturnValue  map[string]interface{}
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/orgs/{orgid}/projects/{projectid}/buildtargets/{buildtargetid}"
+	localVarPath = strings.Replace(localVarPath, "{"+"orgid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", orgid)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"projectid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", projectid)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"buildtargetid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", buildtargetid)), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := _neturl.Values{}
+	localVarFormParams := _neturl.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json", "text/plain", "text/html", "text/csv"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := _ioutil.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 200 {
+			var v map[string]interface{}
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+/*
+OrgsOrgidProjectsProjectidBuildtargetsBuildtargetidPut Update build target details
+ * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ * @param orgid Organization identifier
+ * @param projectid Project identifier
+ * @param buildtargetid unique id auto-generated from the build target name
+ * @param options
+@return map[string]interface{}
+*/
+func (a *BuildtargetsApiService) OrgsOrgidProjectsProjectidBuildtargetsBuildtargetidPut(ctx _context.Context, orgid string, projectid string, buildtargetid string, options InlineObject7) (map[string]interface{}, *_nethttp.Response, error) {
 	var (
 		localVarHTTPMethod   = _nethttp.MethodPut
 		localVarPostBody     interface{}
@@ -1176,7 +631,205 @@ func (a *ProjectsApiService) UpdateProject(ctx _context.Context, orgid string, p
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/orgs/{orgid}/projects/{projectid}"
+	localVarPath := a.client.cfg.BasePath + "/orgs/{orgid}/projects/{projectid}/buildtargets/{buildtargetid}"
+	localVarPath = strings.Replace(localVarPath, "{"+"orgid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", orgid)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"projectid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", projectid)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"buildtargetid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", buildtargetid)), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := _neturl.Values{}
+	localVarFormParams := _neturl.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{"application/json"}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json", "text/plain", "text/html", "text/csv"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	// body params
+	localVarPostBody = &options
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := _ioutil.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 200 {
+			var v map[string]interface{}
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+// OrgsOrgidProjectsProjectidBuildtargetsGetOpts Optional parameters for the method 'OrgsOrgidProjectsProjectidBuildtargetsGet'
+type OrgsOrgidProjectsProjectidBuildtargetsGetOpts struct {
+    Include optional.String
+    IncludeLastSuccess optional.Bool
+}
+
+/*
+OrgsOrgidProjectsProjectidBuildtargetsGet List all build targets for a project
+Gets all configured build targets for a project, regardless of whether they are enabled. Add \&quot;?include&#x3D;settings,credentials\&quot; as a query parameter to include the build target settings and credentials with the response. 
+ * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ * @param orgid Organization identifier
+ * @param projectid Project identifier
+ * @param optional nil or *OrgsOrgidProjectsProjectidBuildtargetsGetOpts - Optional Parameters:
+ * @param "Include" (optional.String) -  Extra fields to include in the response
+ * @param "IncludeLastSuccess" (optional.Bool) -  Include last successful build
+@return []InlineResponse2006
+*/
+func (a *BuildtargetsApiService) OrgsOrgidProjectsProjectidBuildtargetsGet(ctx _context.Context, orgid string, projectid string, localVarOptionals *OrgsOrgidProjectsProjectidBuildtargetsGetOpts) ([]InlineResponse2006, *_nethttp.Response, error) {
+	var (
+		localVarHTTPMethod   = _nethttp.MethodGet
+		localVarPostBody     interface{}
+		localVarFormFileName string
+		localVarFileName     string
+		localVarFileBytes    []byte
+		localVarReturnValue  []InlineResponse2006
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/orgs/{orgid}/projects/{projectid}/buildtargets"
+	localVarPath = strings.Replace(localVarPath, "{"+"orgid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", orgid)), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"projectid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", projectid)), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := _neturl.Values{}
+	localVarFormParams := _neturl.Values{}
+
+	if localVarOptionals != nil && localVarOptionals.Include.IsSet() {
+		localVarQueryParams.Add("include", parameterToString(localVarOptionals.Include.Value(), ""))
+	}
+	if localVarOptionals != nil && localVarOptionals.IncludeLastSuccess.IsSet() {
+		localVarQueryParams.Add("include_last_success", parameterToString(localVarOptionals.IncludeLastSuccess.Value(), ""))
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json", "text/plain", "text/html", "text/csv"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := _ioutil.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 200 {
+			var v []InlineResponse2006
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+/*
+OrgsOrgidProjectsProjectidBuildtargetsPost Create build target for a project
+ * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ * @param orgid Organization identifier
+ * @param projectid Project identifier
+ * @param options
+@return map[string]interface{}
+*/
+func (a *BuildtargetsApiService) OrgsOrgidProjectsProjectidBuildtargetsPost(ctx _context.Context, orgid string, projectid string, options InlineObject6) (map[string]interface{}, *_nethttp.Response, error) {
+	var (
+		localVarHTTPMethod   = _nethttp.MethodPost
+		localVarPostBody     interface{}
+		localVarFormFileName string
+		localVarFileName     string
+		localVarFileBytes    []byte
+		localVarReturnValue  map[string]interface{}
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/orgs/{orgid}/projects/{projectid}/buildtargets"
 	localVarPath = strings.Replace(localVarPath, "{"+"orgid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", orgid)), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"projectid"+"}", _neturl.QueryEscape(fmt.Sprintf("%v", projectid)), -1)
 
@@ -1224,7 +877,7 @@ func (a *ProjectsApiService) UpdateProject(ctx _context.Context, orgid string, p
 			body:  localVarBody,
 			error: localVarHTTPResponse.Status,
 		}
-		if localVarHTTPResponse.StatusCode == 200 {
+		if localVarHTTPResponse.StatusCode == 201 {
 			var v map[string]interface{}
 			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
 			if err != nil {

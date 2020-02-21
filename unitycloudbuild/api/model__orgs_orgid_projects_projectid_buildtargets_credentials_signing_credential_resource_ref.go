@@ -8,9 +8,15 @@
  */
 
 package ucbapi
-// InlineResponse2005 struct for InlineResponse2005
-type InlineResponse2005 struct {
-	UpdatingUserEmail string `json:"updatingUserEmail,omitempty"`
-	Updated string `json:"updated"`
-	Lines []OrgsOrgidProjectsProjectidAuditlogLines `json:"lines"`
+// OrgsOrgidProjectsProjectidBuildtargetsCredentialsSigningCredentialResourceRef struct for OrgsOrgidProjectsProjectidBuildtargetsCredentialsSigningCredentialResourceRef
+type OrgsOrgidProjectsProjectidBuildtargetsCredentialsSigningCredentialResourceRef struct {
+	Platform            string                                                                                           `json:"platform,omitempty"`
+	Label               string                                                                                           `json:"label,omitempty"`
+	Credentialid        string                                                                                           `json:"credentialid,omitempty"`
+	Created             string                                                                                           `json:"created,omitempty"`
+	LastMod             string                                                                                           `json:"lastMod,omitempty"`
+	Certificate         OrgsOrgidProjectsProjectidBuildtargetsCredentialsSigningCredentialResourceRefCertificate         `json:"certificate,omitempty"`
+	ProvisioningProfile OrgsOrgidProjectsProjectidBuildtargetsCredentialsSigningCredentialResourceRefProvisioningProfile `json:"provisioningProfile,omitempty"`
+	Keystore            OrgsOrgidProjectsProjectidBuildtargetsCredentialsSigningCredentialResourceRefKeystore            `json:"keystore,omitempty"`
+	Links               map[string]interface{}                                                                           `json:"links,omitempty"`
 }

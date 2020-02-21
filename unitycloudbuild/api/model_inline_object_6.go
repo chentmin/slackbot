@@ -10,9 +10,9 @@
 package ucbapi
 // InlineObject6 struct for InlineObject6
 type InlineObject6 struct {
-	Name string `json:"name,omitempty"`
-	Platform string `json:"platform,omitempty"`
-	Enabled bool `json:"enabled,omitempty"`
-	Settings OrgsOrgidProjectsProjectidBuildtargetsSettings `json:"settings,omitempty"`
+	Name        string                                             `json:"name,omitempty"`
+	Platform    string                                             `json:"platform,omitempty"`
+	Enabled     bool                                               `json:"enabled,omitempty"`
+	Settings    OrgsOrgidProjectsProjectidBuildtargetsSettings     `json:"settings,omitempty"`
 	Credentials OrgsOrgidProjectsProjectidBuildtargetsCredentials1 `json:"credentials,omitempty"`
 }
