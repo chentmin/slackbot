@@ -35,6 +35,14 @@
   version = "v0.6.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:75d75c876041d3b0df184111de6bf2e6a8d8cae3b61a0f0eee8d5f35655dc674"
+  name = "github.com/chentmin/slackbot"
+  packages = ["slackbot"]
+  pruneopts = ""
+  revision = "a94e72a70d426c004f4a1b652658e21b212a5f56"
+
+[[projects]]
   digest = "1:e35353e6b5c1a1350832f2f5ea87f1d42d491ce519bc6e2c65d5dd6d020e2a01"
   name = "github.com/gin-contrib/sse"
   packages = ["."]
@@ -242,6 +250,7 @@
     "github.com/aws/aws-lambda-go/events",
     "github.com/aws/aws-lambda-go/lambda",
     "github.com/awslabs/aws-lambda-go-api-proxy/gin",
+    "github.com/chentmin/slackbot/slackbot",
     "github.com/gin-gonic/gin",
     "github.com/pkg/errors",
     "github.com/skip2/go-qrcode",

@@ -6,7 +6,9 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
+	"github.com/chentmin/slackbot/slackbot"
 	"github.com/gin-gonic/gin"
+	"os"
 )
 
 var ginLambda *ginadapter.GinLambda
@@ -19,8 +21,16 @@ func newGinRouter() *gin.Engine{
 	r := gin.Default()
 	gin.SetMode(gin.ReleaseMode)
 
-	r.POST("/message", handleMessageEvent)
-	r.POST("/interact", handleCallbackEvent)
+	botManager := slackbot.New(os.Getenv("SLACK__TOKEN"), os.Getenv("SLACK_VERIFICATION_TOKEN"))
+
+	botManager.RegisterMentionCommand(buildCommand, processBuildCommand)
+	botManager.RegisterMentionCommand(pingCommand, processPingCommand)
+	botManager.RegisterMentionCommand(installCommand, processInstallCommand)
+
+	botManager.RegisterCallback("cancel_build", processCancelBuild)
+
+	r.POST("/message", botManager.HandleMessageEvent)
+	r.POST("/interact", botManager.HandleCallbackEvent)
 	r.GET("/install", handleRedirectManifest)
 	r.GET("/manifest/:tag/:build/manifest.plist", handleInstallManifest)
 	r.GET("/redirect-download/:tag/:build/build.ipa", handleRedirectDownload)

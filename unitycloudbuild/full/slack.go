@@ -3,22 +3,17 @@ package main
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/antihax/optional"
 	swagger "github.com/chentmin/slackbot/unitycloudbuild/api"
-	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	qrcode "github.com/skip2/go-qrcode"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
-	"io/ioutil"
-	"net/http"
 	"os"
-	"regexp"
- qrcode "github.com/skip2/go-qrcode"
 
-"strings"
+	"strings"
 )
 
 var (
@@ -36,119 +31,6 @@ build tag [clean] 新建构建
 install tag number 获得安装二维码
 `
 )
-
-type Command func(ctx context.Context, ev *slackevents.AppMentionEvent, cmd []string)
-
-var (
-	commandMap = map[string]Command{
-		buildCommand:   processBuildCommand,
-		pingCommand:    processPingCommand,
-		installCommand: processInstallCommand,
-	}
-)
-
-func handleMessageEvent(c *gin.Context) {
-	var VERIFICATION_TOKEN = os.Getenv("SLACK_VERIFICATION_TOKEN")
-
-	body, _ := ioutil.ReadAll(c.Request.Body)
-
-	eventsAPIEvent, e := slackevents.ParseEvent(json.RawMessage(body), slackevents.OptionVerifyToken(slackevents.TokenComparator{VerificationToken: VERIFICATION_TOKEN}))
-	if e != nil {
-		fmt.Printf("收到request, 但是作为event解析失败: %s\n", body)
-		c.String(http.StatusBadRequest, "")
-		return
-	}
-
-	if eventsAPIEvent.Type == slackevents.URLVerification {
-		var r *slackevents.ChallengeResponse
-		err := json.Unmarshal([]byte(body), &r)
-		if err != nil {
-			return
-		}
-
-		c.String(http.StatusOK, r.Challenge)
-		return
-	}
-
-	defer func() {
-		c.String(http.StatusOK, "")
-	}()
-
-	if eventsAPIEvent.Type == slackevents.CallbackEvent {
-		innerEvent := eventsAPIEvent.InnerEvent
-
-		fmt.Printf("inner event type: %s\n", innerEvent.Type)
-
-		switch innerEvent.Type {
-		case slackevents.AppMention:
-			ev := innerEvent.Data.(*slackevents.AppMentionEvent)
-
-			fmt.Printf("收到mention事件: %s: %s\n", ev.User, ev.Text)
-
-			text := strings.TrimSpace(ev.Text)
-
-			processed := false
-			for cmd, process := range commandMap {
-				if reg := regexp.MustCompile(cmd); reg.MatchString(text) {
-					param := reg.FindStringSubmatch(text)
-					process(c, ev, param)
-					processed = true
-					break
-				}
-			}
-
-			if !processed {
-				fmt.Printf("收到未知的命令: %s\n", text)
-			}
-
-			return
-
-		default:
-			fmt.Printf("收到未处理的event type: %s\n", innerEvent.Type)
-		}
-	}
-
-	fmt.Printf("收到未知的事件: %s\n", body)
-
-	return
-}
-
-func handleCallbackEvent(c *gin.Context) {
-	defer func() {
-		c.String(http.StatusOK, "")
-	}()
-
-	payload, has := c.GetPostForm("payload")
-
-	if !has {
-		fmt.Printf("callbackk没有payload的formValue\n")
-		return
-	}
-
-	var action slack.InteractionCallback
-
-	if err := json.Unmarshal([]byte(payload), &action); err != nil {
-		fmt.Printf("unmarshal payload失败: %s\n", err)
-		return
-	}
-
-	fmt.Printf("payload: %+v\n", action)
-
-	if action.Token != os.Getenv("SLACK_VERIFICATION_TOKEN") {
-		fmt.Printf("token验证失败\n")
-		return
-	}
-
-	switch action.CallbackID {
-	case "cancel_build":
-		processCancelBuild(c, action)
-
-	default:
-		fmt.Printf("未知callback id: %s\n", action.CallbackID)
-	}
-
-	return
-}
 
 func processCancelBuild(ctx context.Context, action slack.InteractionCallback) {
 	if action.ActionCallback.AttachmentActions == nil {
@@ -190,19 +72,19 @@ func processInstallCommand(ctx context.Context, ev *slackevents.AppMentionEvent,
 	fmt.Printf("image url: %s\n", url)
 
 	png, err := qrcode.Encode(url, qrcode.Medium, 256)
-	if err != nil{
+	if err != nil {
 		fmt.Printf("生成二维码失败: %s\n", err)
 		api.PostMessage(ev.Channel, slack.MsgOptionPostEphemeral(ev.User), slack.MsgOptionText(fmt.Sprintf("生成二维码失败: %s\n", err), false))
 		return
 	}
-	
+
 	if _, err := api.UploadFile(slack.FileUploadParameters{
 		Reader:          bytes.NewBuffer(png),
 		Filetype:        "png",
 		Filename:        fmt.Sprintf("%s_%s.png", buildNumber, tag),
 		Channels:        []string{ev.Channel},
 		ThreadTimestamp: ev.ThreadTimeStamp,
-	}); err != nil{
+	}); err != nil {
 		fmt.Printf("上传图片失败: %s\n", err)
 		api.PostMessage(ev.Channel, slack.MsgOptionPostEphemeral(ev.User), slack.MsgOptionText(fmt.Sprintf("上传图片失败: %s\n", err), false))
 		return
