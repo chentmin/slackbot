@@ -15,33 +15,33 @@ import (
 	"strings"
 )
 
-var(
-	commandMap map[string] Command
+var (
+	commandMap map[string]Command
 )
 
 type Command func(ctx context.Context, ev *slackevents.AppMentionEvent, cmd []string)
 
 type Callback func(ctx context.Context, action slack.InteractionCallback)
 
-type Manager struct{
-	slackToken string
+type Manager struct {
+	slackToken             string
 	slackVerificationToken string
 
-	commandMap map[string] Command
-	callbackMap map[string] Callback
+	commandMap  map[string]Command
+	callbackMap map[string]Callback
 
 	onceDynamoTable string
 }
 
-func New(token, verificationToken string, options ...option) *Manager{
+func New(token, verificationToken string, options ...option) *Manager {
 	result := &Manager{
-		slackToken: token,
+		slackToken:             token,
 		slackVerificationToken: verificationToken,
-		commandMap: make(map[string] Command),
-		callbackMap: make(map[string]Callback),
+		commandMap:             make(map[string]Command),
+		callbackMap:            make(map[string]Callback),
 	}
 
-	for _, ops := range options{
+	for _, ops := range options {
 		ops(result)
 	}
 
@@ -50,27 +50,27 @@ func New(token, verificationToken string, options ...option) *Manager{
 
 type option func(*Manager)
 
-func OnlyOnceByDynamoDB(table string) option{
-	return func(manager *Manager){
+func OnlyOnceByDynamoDB(table string) option {
+	return func(manager *Manager) {
 		manager.onceDynamoTable = table
 	}
 }
 
-func (m *Manager) RegisterMentionCommand (reg string, cmd Command){
-	if _, has := m.commandMap[reg]; has{
-		panic("重复注册了command: "+reg)
+func (m *Manager) RegisterMentionCommand(reg string, cmd Command) {
+	if _, has := m.commandMap[reg]; has {
+		panic("重复注册了command: " + reg)
 	}
 	m.commandMap[reg] = cmd
 }
 
-func (m *Manager) RegisterCallback(reg string, callback Callback){
-	if _, has := m.callbackMap[reg]; has{
-		panic("重复注册了callback: "+reg)
+func (m *Manager) RegisterCallback(reg string, callback Callback) {
+	if _, has := m.callbackMap[reg]; has {
+		panic("重复注册了callback: " + reg)
 	}
 	m.callbackMap[reg] = callback
 }
 
-func (m *Manager) HandleMessageEvent(c *gin.Context){
+func (m *Manager) HandleMessageEvent(c *gin.Context) {
 
 	body, _ := ioutil.ReadAll(c.Request.Body)
 
@@ -104,8 +104,10 @@ func (m *Manager) HandleMessageEvent(c *gin.Context){
 		switch innerEvent.Type {
 		case slackevents.AppMention:
 			ev := innerEvent.Data.(*slackevents.AppMentionEvent)
-			if m.onceDynamoTable != ""{
-				once.New(m.onceDynamoTable).Ensure(ev.TimeStamp)
+			if m.onceDynamoTable != "" {
+				if err := once.New(m.onceDynamoTable).Ensure(ev.TimeStamp); err != nil {
+					return
+				}
 			}
 
 			fmt.Printf("收到mention事件: %s: %s\n", ev.User, ev.Text)
@@ -138,7 +140,7 @@ func (m *Manager) HandleMessageEvent(c *gin.Context){
 	return
 }
 
-func (m *Manager) HandleCallbackEvent(c *gin.Context){
+func (m *Manager) HandleCallbackEvent(c *gin.Context) {
 	defer func() {
 		c.String(http.StatusOK, "")
 	}()
@@ -164,23 +166,25 @@ func (m *Manager) HandleCallbackEvent(c *gin.Context){
 		return
 	}
 
-	if m.onceDynamoTable != ""{
-		once.New(m.onceDynamoTable).Ensure(action.ActionTs)
+	if m.onceDynamoTable != "" {
+		if err := once.New(m.onceDynamoTable).Ensure(action.ActionTs); err != nil {
+			return
+		}
 	}
 
 	fmt.Printf("收到callback事件: %s: %s\n", action.User.Name, action.CallbackID)
 
 	processed := false
 
-	for callback, cmd := range m.callbackMap{
-		if callback == action.CallbackID{
+	for callback, cmd := range m.callbackMap {
+		if callback == action.CallbackID {
 			cmd(c, action)
 			processed = true
 			break
 		}
 	}
 
-	if !processed{
+	if !processed {
 		fmt.Printf("未知callback id: %s\n", action.CallbackID)
 	}
 
