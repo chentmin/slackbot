@@ -30,7 +30,7 @@ type Manager struct{
 	commandMap map[string] Command
 	callbackMap map[string] Callback
 
-	onceS3Bucket string
+	onceDynamoTable string
 }
 
 func New(token, verificationToken string, options ...option) *Manager{
@@ -50,9 +50,9 @@ func New(token, verificationToken string, options ...option) *Manager{
 
 type option func(*Manager)
 
-func OnlyOnceByS3(bucket string) option{
+func OnlyOnceByDynamoDB(table string) option{
 	return func(manager *Manager){
-		manager.onceS3Bucket = bucket
+		manager.onceDynamoTable = table
 	}
 }
 
@@ -104,8 +104,8 @@ func (m *Manager) HandleMessageEvent(c *gin.Context){
 		switch innerEvent.Type {
 		case slackevents.AppMention:
 			ev := innerEvent.Data.(*slackevents.AppMentionEvent)
-			if m.onceS3Bucket != ""{
-				once.New(m.onceS3Bucket).Ensure(ev.TimeStamp)
+			if m.onceDynamoTable != ""{
+				once.New(m.onceDynamoTable).Ensure(ev.TimeStamp)
 			}
 
 			fmt.Printf("收到mention事件: %s: %s\n", ev.User, ev.Text)
@@ -164,8 +164,8 @@ func (m *Manager) HandleCallbackEvent(c *gin.Context){
 		return
 	}
 
-	if m.onceS3Bucket != ""{
-		once.New(m.onceS3Bucket).Ensure(action.ActionTs)
+	if m.onceDynamoTable != ""{
+		once.New(m.onceDynamoTable).Ensure(action.ActionTs)
 	}
 
 	fmt.Printf("收到callback事件: %s: %s\n", action.User.Name, action.CallbackID)

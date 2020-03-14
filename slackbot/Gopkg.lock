@@ -2,11 +2,10 @@
 
 
 [[projects]]
-  digest = "1:7e49ca38b63cce74e5f2fe104be161881d5fbaf2c3e60fd2e8c986b449666e0c"
+  digest = "1:110fc990b6e062a47d06c829b4497e4b28fa198c7c81b609c2e7bf13453b8b75"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
-    "aws/arn",
     "aws/awserr",
     "aws/awsutil",
     "aws/client",
@@ -17,6 +16,7 @@
     "aws/credentials/endpointcreds",
     "aws/credentials/processcreds",
     "aws/credentials/stscreds",
+    "aws/crr",
     "aws/csm",
     "aws/defaults",
     "aws/ec2metadata",
@@ -26,7 +26,6 @@
     "aws/signer/v4",
     "internal/context",
     "internal/ini",
-    "internal/s3err",
     "internal/sdkio",
     "internal/sdkmath",
     "internal/sdkrand",
@@ -35,16 +34,13 @@
     "internal/strings",
     "internal/sync/singleflight",
     "private/protocol",
-    "private/protocol/eventstream",
-    "private/protocol/eventstream/eventstreamapi",
     "private/protocol/json/jsonutil",
+    "private/protocol/jsonrpc",
     "private/protocol/query",
     "private/protocol/query/queryutil",
     "private/protocol/rest",
-    "private/protocol/restxml",
     "private/protocol/xml/xmlutil",
-    "service/s3",
-    "service/s3/internal/arn",
+    "service/dynamodb",
     "service/sts",
     "service/sts/stsiface",
   ]
@@ -54,11 +50,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:a58c939a971e07e8ed66be15091eb530d71682b4c2bbc34f1392267944c51f38"
+  digest = "1:c070d719c6d290c65d425af2dc0db4c48e0843a5c5e569ba7efb9da46d816c5c"
   name = "github.com/chentmin/once"
   packages = ["."]
   pruneopts = "UT"
-  revision = "14b98394215ae1f2ab499dba2e015f404fb155e4"
+  revision = "9cf26f370ffc4d340b460ac2f730ff6f7dd98770"
 
 [[projects]]
   digest = "1:3ee1d175a75b911a659fbd860060874c4f503e793c5870d13e5a0ede529a63cf"
