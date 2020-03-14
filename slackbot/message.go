@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/chentmin/once"
 	"github.com/gin-gonic/gin"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
@@ -28,14 +29,30 @@ type Manager struct{
 
 	commandMap map[string] Command
 	callbackMap map[string] Callback
+
+	onceS3Bucket string
 }
 
-func New(token, verificationToken string) *Manager{
-	return &Manager{
+func New(token, verificationToken string, options ...option) *Manager{
+	result := &Manager{
 		slackToken: token,
 		slackVerificationToken: verificationToken,
 		commandMap: make(map[string] Command),
 		callbackMap: make(map[string]Callback),
+	}
+
+	for _, ops := range options{
+		ops(result)
+	}
+
+	return result
+}
+
+type option func(*Manager)
+
+func OnlyOnceByS3(bucket string) option{
+	return func(manager *Manager){
+		manager.onceS3Bucket = bucket
 	}
 }
 
@@ -87,6 +104,9 @@ func (m *Manager) HandleMessageEvent(c *gin.Context){
 		switch innerEvent.Type {
 		case slackevents.AppMention:
 			ev := innerEvent.Data.(*slackevents.AppMentionEvent)
+			if m.onceS3Bucket != ""{
+				once.New(m.onceS3Bucket).Ensure(ev.TimeStamp)
+			}
 
 			fmt.Printf("收到mention事件: %s: %s\n", ev.User, ev.Text)
 
@@ -142,6 +162,10 @@ func (m *Manager) HandleCallbackEvent(c *gin.Context){
 	if action.Token != os.Getenv("SLACK_VERIFICATION_TOKEN") {
 		fmt.Printf("token验证失败\n")
 		return
+	}
+
+	if m.onceS3Bucket != ""{
+		once.New(m.onceS3Bucket).Ensure(action.ActionTs)
 	}
 
 	fmt.Printf("收到callback事件: %s: %s\n", action.User.Name, action.CallbackID)
