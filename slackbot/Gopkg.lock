@@ -219,6 +219,7 @@
   input-imports = [
     "github.com/chentmin/once",
     "github.com/gin-gonic/gin",
+    "github.com/pkg/errors",
     "github.com/slack-go/slack",
     "github.com/slack-go/slack/slackevents",
   ]
