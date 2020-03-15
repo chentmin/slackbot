@@ -166,7 +166,7 @@ func (m *Manager) HandleCallbackEvent(c *gin.Context) {
 	}
 
 	if m.onceDynamoTable != "" {
-		if err := once.New(m.onceDynamoTable).Ensure(action.ActionTs); err != nil {
+		if err := once.New(m.onceDynamoTable).Ensure(action.TriggerID); err != nil {
 			return
 		}
 	}
