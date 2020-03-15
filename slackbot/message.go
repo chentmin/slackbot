@@ -20,9 +20,9 @@ var (
 
 type Command func(ctx context.Context, ev *slackevents.AppMentionEvent, cmd []string)
 
-type AttachmentCallback func(ctx context.Context, action *slack.AttachmentAction, originalMessage slack.Message)
+type AttachmentCallback func(ctx context.Context, action *slack.AttachmentAction, fullCallback slack.InteractionCallback)
 
-type BlockCallback func(ctx context.Context, action *slack.BlockAction, originalMessage slack.Message)
+type BlockCallback func(ctx context.Context, action *slack.BlockAction, fullCallback slack.InteractionCallback)
 
 type Manager struct {
 	slackToken             string
@@ -190,7 +190,7 @@ func (m *Manager) HandleCallbackEvent(c *gin.Context) {
 		for callback, cmd := range m.attachmentCallbackMap {
 			if callback == action.CallbackID {
 				for _, cb := range action.ActionCallback.AttachmentActions {
-					cmd(c, cb, action.OriginalMessage)
+					cmd(c, cb, action)
 				}
 
 				processed = true
@@ -208,7 +208,7 @@ func (m *Manager) HandleCallbackEvent(c *gin.Context) {
 
 			for callback, cmd := range m.blockCallbackMap {
 				if callback == cb.ActionID {
-					cmd(c, cb, action.OriginalMessage)
+					cmd(c, cb, action)
 					processed = true
 					break
 				}
