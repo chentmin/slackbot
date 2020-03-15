@@ -20,14 +20,17 @@ var (
 
 type Command func(ctx context.Context, ev *slackevents.AppMentionEvent, cmd []string)
 
-type Callback func(ctx context.Context, action slack.InteractionCallback)
+type AttachmentCallback func(ctx context.Context, action *slack.AttachmentAction, originalMessage slack.Message)
+
+type BlockCallback func(ctx context.Context, action *slack.BlockAction, originalMessage slack.Message)
 
 type Manager struct {
 	slackToken             string
 	slackVerificationToken string
 
-	commandMap  map[string]Command
-	callbackMap map[string]Callback
+	commandMap            map[string]Command
+	attachmentCallbackMap map[string]AttachmentCallback
+	blockCallbackMap      map[string]BlockCallback
 
 	onceDynamoTable string
 }
@@ -37,7 +40,8 @@ func New(token, verificationToken string, options ...option) *Manager {
 		slackToken:             token,
 		slackVerificationToken: verificationToken,
 		commandMap:             make(map[string]Command),
-		callbackMap:            make(map[string]Callback),
+		attachmentCallbackMap:  make(map[string]AttachmentCallback),
+		blockCallbackMap:       make(map[string]BlockCallback),
 	}
 
 	for _, ops := range options {
@@ -62,11 +66,18 @@ func (m *Manager) RegisterMentionCommand(reg string, cmd Command) {
 	m.commandMap[reg] = cmd
 }
 
-func (m *Manager) RegisterCallback(reg string, callback Callback) {
-	if _, has := m.callbackMap[reg]; has {
-		panic("重复注册了callback: " + reg)
+func (m *Manager) RegisterAttachmentCallback(reg string, callback AttachmentCallback) {
+	if _, has := m.attachmentCallbackMap[reg]; has {
+		panic("重复注册了attachment callback: " + reg)
 	}
-	m.callbackMap[reg] = callback
+	m.attachmentCallbackMap[reg] = callback
+}
+
+func (m *Manager) RegisterBlockCallback(reg string, callback BlockCallback) {
+	if _, has := m.blockCallbackMap[reg]; has {
+		panic("重复注册了block callback: " + reg)
+	}
+	m.blockCallbackMap[reg] = callback
 }
 
 func (m *Manager) HandleMessageEvent(c *gin.Context) {
@@ -170,21 +181,43 @@ func (m *Manager) HandleCallbackEvent(c *gin.Context) {
 			return
 		}
 	}
+	switch action.Type {
+	case slack.InteractionTypeInteractionMessage:
+		fmt.Printf("收到callback事件: %s: %s\n", action.User.Name, action.CallbackID)
 
-	fmt.Printf("收到callback事件: %s: %s\n", action.User.Name, action.CallbackID)
+		processed := false
 
-	processed := false
+		for callback, cmd := range m.attachmentCallbackMap {
+			if callback == action.CallbackID {
+				for _, cb := range action.ActionCallback.AttachmentActions {
+					cmd(c, cb, action.OriginalMessage)
+				}
 
-	for callback, cmd := range m.callbackMap {
-		if callback == action.CallbackID {
-			cmd(c, action)
-			processed = true
-			break
+				processed = true
+				break
+			}
 		}
-	}
 
-	if !processed {
-		fmt.Printf("未知callback id: %s\n", action.CallbackID)
+		if !processed {
+			fmt.Printf("未知callback id: %s\n", action.CallbackID)
+		}
+
+	case slack.InteractionTypeBlockActions:
+		for _, cb := range action.ActionCallback.BlockActions {
+			processed := false
+
+			for callback, cmd := range m.blockCallbackMap {
+				if callback == cb.ActionID {
+					cmd(c, cb, action.OriginalMessage)
+					processed = true
+					break
+				}
+			}
+
+			if !processed {
+				fmt.Printf("未知block callback id: %s\n", cb.ActionID)
+			}
+		}
 	}
 
 	return
