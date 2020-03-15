@@ -10,7 +10,6 @@ import (
 	"github.com/slack-go/slack/slackevents"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"regexp"
 	"strings"
 )
@@ -161,7 +160,7 @@ func (m *Manager) HandleCallbackEvent(c *gin.Context) {
 
 	fmt.Printf("payload: %+v\n", action)
 
-	if action.Token != os.Getenv("SLACK_VERIFICATION_TOKEN") {
+	if action.Token != m.slackVerificationToken {
 		fmt.Printf("token验证失败\n")
 		return
 	}
