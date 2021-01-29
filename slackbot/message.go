@@ -195,7 +195,7 @@ func (m *Manager) HandleCallbackEvent(c *gin.Context) {
 		processed := false
 
 		for callback, cmd := range m.attachmentCallbackMap {
-			if strings.HasPrefix(action.CallbackID, callback) {
+			if callback == action.CallbackID {
 				for _, cb := range action.ActionCallback.AttachmentActions {
 					cmd(c, cb, action)
 				}
@@ -214,7 +214,7 @@ func (m *Manager) HandleCallbackEvent(c *gin.Context) {
 			processed := false
 
 			for callback, cmd := range m.blockCallbackMap {
-				if strings.HasPrefix(cb.ActionID, callback) {
+				if callback == cb.ActionID {
 					cmd(c, cb, action)
 					processed = true
 					break
