@@ -33,6 +33,8 @@ type Manager struct {
 	blockCallbackMap      map[string]BlockCallback
 
 	onceDynamoTable string
+
+	slackApi *slack.Client
 }
 
 func New(token, verificationToken string, options ...option) *Manager {
@@ -42,6 +44,8 @@ func New(token, verificationToken string, options ...option) *Manager {
 		commandMap:             make(map[string]Command),
 		attachmentCallbackMap:  make(map[string]AttachmentCallback),
 		blockCallbackMap:       make(map[string]BlockCallback),
+
+		slackApi: slack.New(token),
 	}
 
 	for _, ops := range options {
@@ -135,7 +139,10 @@ func (m *Manager) HandleMessageEvent(c *gin.Context) {
 			}
 
 			if !processed {
-				fmt.Printf("收到未知的命令: %s\n", text)
+				msg := fmt.Sprintf("收到未知的命令: %s\n", text)
+				fmt.Printf(msg)
+
+				m.slackApi.PostEphemeral(ev.Channel, ev.User, slack.MsgOptionText(msg, false))
 			}
 
 			return
