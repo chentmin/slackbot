@@ -8,7 +8,7 @@ import (
 	"text/template"
 )
 
-func NewBlockMessage(block string, params map[string]interface{}) (*slack.Blocks, error){
+func NewBlockMessage(block string, params interface{}) (*slack.Blocks, error){
 	tplt, err := template.New("n").Parse(block)
 	if err != nil{
 		return nil, errors.Wrap(err, "解析block失败")
