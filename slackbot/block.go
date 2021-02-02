@@ -5,11 +5,12 @@ import (
 	"encoding/json"
 	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
+	"html"
 	"text/template"
 )
 
 func NewBlockMessage(block string, params interface{}) (*slack.Blocks, error){
-	tplt, err := template.New("n").Parse(block)
+	tplt, err := template.New("n").Funcs(template.FuncMap{"EscapeString": html.EscapeString}).Parse(block)
 	if err != nil{
 		return nil, errors.Wrap(err, "解析block失败")
 	}
