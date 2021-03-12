@@ -12,6 +12,10 @@ const (
 
 type ViewType string
 
+type ViewState struct {
+	Values map[string]map[string]BlockAction `json:"values"`
+}
+
 type View struct {
 	SlackResponse
 	ID              string           `json:"id"`
@@ -23,7 +27,7 @@ type View struct {
 	Blocks          Blocks           `json:"blocks"`
 	PrivateMetadata string           `json:"private_metadata"`
 	CallbackID      string           `json:"callback_id"`
-	State           interface{}      `json:"state"`
+	State           *ViewState       `json:"state"`
 	Hash            string           `json:"hash"`
 	ClearOnClose    bool             `json:"clear_on_close"`
 	NotifyOnClose   bool             `json:"notify_on_close"`
@@ -34,17 +38,67 @@ type View struct {
 	BotID           string           `json:"bot_id"`
 }
 
+type ViewSubmissionCallback struct {
+	Hash string `json:"hash"`
+}
+
+type ViewClosedCallback struct {
+	IsCleared bool `json:"is_cleared"`
+}
+
+const (
+	RAClear  ViewResponseAction = "clear"
+	RAUpdate ViewResponseAction = "update"
+	RAPush   ViewResponseAction = "push"
+	RAErrors ViewResponseAction = "errors"
+)
+
+type ViewResponseAction string
+
+type ViewSubmissionResponse struct {
+	ResponseAction ViewResponseAction `json:"response_action"`
+	View           *ModalViewRequest  `json:"view,omitempty"`
+	Errors         map[string]string  `json:"errors,omitempty"`
+}
+
+func NewClearViewSubmissionResponse() *ViewSubmissionResponse {
+	return &ViewSubmissionResponse{
+		ResponseAction: RAClear,
+	}
+}
+
+func NewUpdateViewSubmissionResponse(view *ModalViewRequest) *ViewSubmissionResponse {
+	return &ViewSubmissionResponse{
+		ResponseAction: RAUpdate,
+		View:           view,
+	}
+}
+
+func NewPushViewSubmissionResponse(view *ModalViewRequest) *ViewSubmissionResponse {
+	return &ViewSubmissionResponse{
+		ResponseAction: RAPush,
+		View:           view,
+	}
+}
+
+func NewErrorsViewSubmissionResponse(errors map[string]string) *ViewSubmissionResponse {
+	return &ViewSubmissionResponse{
+		ResponseAction: RAErrors,
+		Errors:         errors,
+	}
+}
+
 type ModalViewRequest struct {
 	Type            ViewType         `json:"type"`
 	Title           *TextBlockObject `json:"title"`
 	Blocks          Blocks           `json:"blocks"`
-	Close           *TextBlockObject `json:"close"`
-	Submit          *TextBlockObject `json:"submit"`
-	PrivateMetadata string           `json:"private_metadata"`
-	CallbackID      string           `json:"callback_id"`
-	ClearOnClose    bool             `json:"clear_on_close"`
-	NotifyOnClose   bool             `json:"notify_on_close"`
-	ExternalID      string           `json:"external_id"`
+	Close           *TextBlockObject `json:"close,omitempty"`
+	Submit          *TextBlockObject `json:"submit,omitempty"`
+	PrivateMetadata string           `json:"private_metadata,omitempty"`
+	CallbackID      string           `json:"callback_id,omitempty"`
+	ClearOnClose    bool             `json:"clear_on_close,omitempty"`
+	NotifyOnClose   bool             `json:"notify_on_close,omitempty"`
+	ExternalID      string           `json:"external_id,omitempty"`
 }
 
 func (v *ModalViewRequest) ViewType() ViewType {
@@ -54,9 +108,9 @@ func (v *ModalViewRequest) ViewType() ViewType {
 type HomeTabViewRequest struct {
 	Type            ViewType `json:"type"`
 	Blocks          Blocks   `json:"blocks"`
-	PrivateMetadata string   `json:"private_metadata"`
-	CallbackID      string   `json:"callback_id"`
-	ExternalID      string   `json:"external_id"`
+	PrivateMetadata string   `json:"private_metadata,omitempty"`
+	CallbackID      string   `json:"callback_id,omitempty"`
+	ExternalID      string   `json:"external_id,omitempty"`
 }
 
 func (v *HomeTabViewRequest) ViewType() ViewType {
@@ -71,7 +125,7 @@ type openViewRequest struct {
 type publishViewRequest struct {
 	UserID string             `json:"user_id"`
 	View   HomeTabViewRequest `json:"view"`
-	Hash   string             `json:"hash"`
+	Hash   string             `json:"hash,omitempty"`
 }
 
 type pushViewRequest struct {
@@ -81,9 +135,9 @@ type pushViewRequest struct {
 
 type updateViewRequest struct {
 	View       ModalViewRequest `json:"view"`
-	ExternalID string           `json:"external_id"`
-	Hash       string           `json:"hash"`
-	ViewID     string           `json:"view_id"`
+	ExternalID string           `json:"external_id,omitempty"`
+	Hash       string           `json:"hash,omitempty"`
+	ViewID     string           `json:"view_id,omitempty"`
 }
 
 type ViewResponse struct {
@@ -96,6 +150,23 @@ func (api *Client) OpenView(triggerID string, view ModalViewRequest) (*ViewRespo
 	return api.OpenViewContext(context.Background(), triggerID, view)
 }
 
+// ValidateUniqueBlockID will verify if each input block has a unique block ID if set
+func ValidateUniqueBlockID(view ModalViewRequest) bool {
+
+	uniqueBlockID := map[string]bool{}
+
+	for _, b := range view.Blocks.BlockSet {
+		if inputBlock, ok := b.(*InputBlock); ok {
+			if _, ok := uniqueBlockID[inputBlock.BlockID]; ok {
+				return false
+			}
+			uniqueBlockID[inputBlock.BlockID] = true
+		}
+	}
+
+	return true
+}
+
 // OpenViewContext opens a view for a user with a custom context.
 func (api *Client) OpenViewContext(
 	ctx context.Context,
@@ -105,6 +176,11 @@ func (api *Client) OpenViewContext(
 	if triggerID == "" {
 		return nil, ErrParametersMissing
 	}
+
+	if !ValidateUniqueBlockID(view) {
+		return nil, ErrBlockIDNotUnique
+	}
+
 	req := openViewRequest{
 		TriggerID: triggerID,
 		View:      view,

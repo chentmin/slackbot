@@ -23,6 +23,13 @@ type AppMentionEvent struct {
 	ThreadTimeStamp string      `json:"thread_ts"`
 	Channel         string      `json:"channel"`
 	EventTimeStamp  json.Number `json:"event_ts"`
+
+	// When Message comes from a channel that is shared between workspaces
+	UserTeam   string `json:"user_team,omitempty"`
+	SourceTeam string `json:"source_team,omitempty"`
+
+	// BotID is filled out when a bot triggers the app_mention event
+	BotID string `json:"bot_id,omitempty"`
 }
 
 // AppHomeOpenedEvent Your Slack app home was opened.
@@ -59,6 +66,7 @@ type LinkSharedEvent struct {
 	TimeStamp        string        `json:"ts"`
 	Channel          string        `json:"channel"`
 	MessageTimeStamp json.Number   `json:"message_ts"`
+	ThreadTimeStamp  string        `json:"thread_ts"`
 	Links            []sharedLinks `json:"links"`
 }
 
@@ -76,6 +84,7 @@ type sharedLinks struct {
 // TODO: Improve this so that it is not required to manually parse ChannelType
 type MessageEvent struct {
 	// Basic Message Event - https://api.slack.com/events/message
+	ClientMsgID     string      `json:"client_msg_id"`
 	Type            string      `json:"type"`
 	User            string      `json:"user"`
 	Text            string      `json:"text"`
@@ -84,6 +93,10 @@ type MessageEvent struct {
 	Channel         string      `json:"channel"`
 	ChannelType     string      `json:"channel_type"`
 	EventTimeStamp  json.Number `json:"event_ts"`
+
+	// When Message comes from a channel that is shared between workspaces
+	UserTeam   string `json:"user_team,omitempty"`
+	SourceTeam string `json:"source_team,omitempty"`
 
 	// Edited Message
 	Message         *MessageEvent `json:"message,omitempty"`
@@ -100,9 +113,16 @@ type MessageEvent struct {
 
 	Upload bool   `json:"upload"`
 	Files  []File `json:"files"`
+
+	Attachments []slack.Attachment `json:"attachments,omitempty"`
+
+	// Root is the message that was broadcast to the channel when the SubType is
+	// thread_broadcast. If this is not a thread_broadcast message event, this
+	// value is nil.
+	Root *MessageEvent `json:"root"`
 }
 
-// MemberJoinedChannelEvent A member join a channel
+// MemberJoinedChannelEvent A member joined a public or private channel
 type MemberJoinedChannelEvent struct {
 	Type        string `json:"type"`
 	User        string `json:"user"`
@@ -110,6 +130,15 @@ type MemberJoinedChannelEvent struct {
 	ChannelType string `json:"channel_type"`
 	Team        string `json:"team"`
 	Inviter     string `json:"inviter"`
+}
+
+// MemberLeftChannelEvent A member left a public or private channel
+type MemberLeftChannelEvent struct {
+	Type        string `json:"type"`
+	User        string `json:"user"`
+	Channel     string `json:"channel"`
+	ChannelType string `json:"channel_type"`
+	Team        string `json:"team"`
 }
 
 type pinEvent struct {
@@ -120,6 +149,21 @@ type pinEvent struct {
 	EventTimestamp string `json:"event_ts"`
 	HasPins        bool   `json:"has_pins,omitempty"`
 }
+
+type reactionEvent struct {
+	Type           string `json:"type"`
+	User           string `json:"user"`
+	Reaction       string `json:"reaction"`
+	ItemUser       string `json:"item_user"`
+	Item           Item   `json:"item"`
+	EventTimestamp string `json:"event_ts"`
+}
+
+// ReactionAddedEvent An reaction was added to a message - https://api.slack.com/events/reaction_added
+type ReactionAddedEvent reactionEvent
+
+// ReactionRemovedEvent An reaction was removed from a message - https://api.slack.com/events/reaction_removed
+type ReactionRemovedEvent reactionEvent
 
 // PinAddedEvent An item was pinned to a channel - https://api.slack.com/events/pin_added
 type PinAddedEvent pinEvent
@@ -136,6 +180,26 @@ type tokens struct {
 type TokensRevokedEvent struct {
 	Type   string `json:"type"`
 	Tokens tokens `json:"tokens"`
+}
+
+// EmojiChangedEvent is the event of custom emoji has been added or changed
+type EmojiChangedEvent struct {
+	Type           string      `json:"type"`
+	Subtype        string      `json:"subtype"`
+	EventTimeStamp json.Number `json:"event_ts"`
+
+	// filled out when custom emoji added
+	Name string `json:"name,omitempty"`
+
+	// filled out when custom emoji removed
+	Names []string `json:"names,omitempty"`
+
+	// filled out when custom emoji renamed
+	OldName string `json:"old_name,omitempty"`
+	NewName string `json:"new_name,omitempty"`
+
+	// filled out when custom emoji added or renamed
+	Value string `json:"value,omitempty"`
 }
 
 // JSONTime exists so that we can have a String method converting the date
@@ -256,12 +320,20 @@ const (
 	Message = "message"
 	// Member Joined Channel
 	MemberJoinedChannel = "member_joined_channel"
+	// Member Left Channel
+	MemberLeftChannel = "member_left_channel"
 	// PinAdded An item was pinned to a channel
 	PinAdded = "pin_added"
 	// PinRemoved An item was unpinned from a channel
 	PinRemoved = "pin_removed"
+	// ReactionAdded An reaction was added to a message
+	ReactionAdded = "reaction_added"
+	// ReactionRemoved An reaction was removed from a message
+	ReactionRemoved = "reaction_removed"
 	// TokensRevoked APP's API tokes are revoked
 	TokensRevoked = "tokens_revoked"
+	// EmojiChanged A custom emoji has been added or changed
+	EmojiChanged = "emoji_changed"
 )
 
 // EventsAPIInnerEventMapping maps INNER Event API events to their corresponding struct
@@ -276,7 +348,11 @@ var EventsAPIInnerEventMapping = map[string]interface{}{
 	LinkShared:            LinkSharedEvent{},
 	Message:               MessageEvent{},
 	MemberJoinedChannel:   MemberJoinedChannelEvent{},
+	MemberLeftChannel:     MemberLeftChannelEvent{},
 	PinAdded:              PinAddedEvent{},
 	PinRemoved:            PinRemovedEvent{},
+	ReactionAdded:         ReactionAddedEvent{},
+	ReactionRemoved:       ReactionRemovedEvent{},
 	TokensRevoked:         TokensRevokedEvent{},
+	EmojiChanged:          EmojiChangedEvent{},
 }

@@ -168,18 +168,20 @@
   version = "v0.9.1"
 
 [[projects]]
-  digest = "1:5a4c039559035062f7e6dc1095a6fea824623df18058d57ad33ff34e03153f08"
+  digest = "1:194e4dd9bb99c1db0f8e16d20d9ccddf8b4771100b8da28cf517103b029e37d2"
   name = "github.com/slack-go/slack"
   packages = [
     ".",
+    "internal/backoff",
     "internal/errorsx",
+    "internal/misc",
     "internal/timex",
     "slackevents",
     "slackutilsx",
   ]
   pruneopts = "UT"
-  revision = "17f514edaa4b964ebbbc7f62c6522d0ca2dc16b3"
-  version = "v0.6.2"
+  revision = "841f33cde5240891bc7a43fed75a211f14371c16"
+  version = "v0.8.1"
 
 [[projects]]
   digest = "1:5a1cf4e370bc86137b58da2ae065e76526d32b11f62a7665f36dbd5f41fa95ff"
